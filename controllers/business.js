@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 //Get a business
 export const getBusiness = (req, res) => {
   const userid = req.params.businessid;
+  if (!userid) return res.status(500).json("Invallid business ID");
   const q = "SELECT * FROM businesses WHERE id = ?";
   db.query(q, [userid], (err, data) => {
     if (err) return res.status(500).json(err);

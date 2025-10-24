@@ -45,7 +45,7 @@ const businessLogin = (req, res) => {
       res
         .cookie("accessToken", token, { httpOnly: true })
         .status(200)
-        .json(others);
+        .json({ data: { user: others, business: true } });
     } else {
       return res.status(400).json({ message: "Wrong username or password!" });
     }
@@ -74,7 +74,7 @@ export const login = (req, res) => {
       res
         .cookie("accessToken", token, { httpOnly: true })
         .status(200)
-        .json(others);
+        .json({ data: { user: others, business: false } });
     } else {
       return res.status(400).json({ message: "Wrong username or password!" });
     }
@@ -91,25 +91,28 @@ export const logout = (req, res) => {
 export const registerBusiness = (req, res) => {
   //check if user exists
   const q = "SELECT * FROM businesses WHERE email = ?";
-  db.query(q, [req.body[0].email], (err, data) => {
+  db.query(q, [req.body.email], (err, data) => {
     if (err) return res.status(500).json(err);
-    if (data.length) return res.status(409).json("User already exists!");
+    if (data.length)
+      return res
+        .status(409)
+        .json({ message: "Business with that email already exists!" });
 
-    Geocoder.from(req.body[0].address)
+    Geocoder.from(req.body.address)
       .then((json) => {
         let coords = json.results[0].geometry.location;
         const salt = bcrypt.genSaltSync(10);
-        const hashedPW = bcrypt.hash(req.body[0].password, salt);
+        const hashedPW = bcrypt.hash(req.body.password, salt);
         hashedPW.then(function (result) {
           const q =
-            "INSERT INTO businesses SET name=" +
-            req.body[0].name +
-            ", email='" +
-            req.body[0].email +
+            "INSERT INTO businesses SET name='" +
+            req.body.name +
+            "', email='" +
+            req.body.email +
             "', password='" +
             result +
             "', address='" +
-            req.body[0].address +
+            req.body.address +
             "', coordinates=POINT(" +
             coords.lng +
             ", " +
