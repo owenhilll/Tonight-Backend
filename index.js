@@ -13,7 +13,7 @@ import { Client } from "@googlemaps/google-maps-services-js";
 dotenv.config();
 export async function geocodeAddress(address) {
   try {
-    const response = await client.geocode({
+    const response = await Client.geocode({
       params: {
         address: address,
         key: process.env.API_KEY, // Replace with your actual API key
@@ -22,13 +22,13 @@ export async function geocodeAddress(address) {
 
     if (response.data.status === "OK") {
       const location = response.data.results[0].geometry.location;
-      return location;
     } else {
       console.error(`Geocoding failed: ${response.data.status}`);
     }
   } catch (error) {
     console.error("Error during geocoding:", error);
   }
+  return response;
 }
 //middleware
 app.use((req, res, next) => {
