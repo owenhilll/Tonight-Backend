@@ -87,7 +87,7 @@ export const addEvent = (req, res) => {
   jwt.verify(token, "secretkey", (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
     const q =
-      "INSERT INTO events (`desc`, `category`, `title`,`posteddate`,`businessid`) VALUES (?)";
+      "INSERT INTO events (`desc`, `category`, `title`,`date`, `time`, `businessid`) VALUES (?)";
 
     const values = [
       req.body.desc,
