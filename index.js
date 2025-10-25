@@ -9,10 +9,26 @@ import likeRoutes from "./routes/likes.js";
 import eventRoutes from "./routes/events.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import Geocoder from "react-native-geocoding";
+import { Client } from "@googlemaps/google-maps-services-js";
+export async function geocodeAddress(address) {
+  try {
+    const response = await client.geocode({
+      params: {
+        address: address,
+        key: '"AIzaSyCdlWWT4orEFXd1APChCUCuAPNa9kuOihE"', // Replace with your actual API key
+      },
+    });
 
-Geocoder.init("AIzaSyCdlWWT4orEFXd1APChCUCuAPNa9kuOihE");
-
+    if (response.data.status === "OK") {
+      const location = response.data.results[0].geometry.location;
+      return location;
+    } else {
+      console.error(`Geocoding failed: ${response.data.status}`);
+    }
+  } catch (error) {
+    console.error("Error during geocoding:", error);
+  }
+}
 //middleware
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", true);

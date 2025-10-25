@@ -1,7 +1,8 @@
 import { db } from "../connect.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import Geocoder from "react-native-geocoding";
+import { geocodeAddress } from "../index.js";
+
 export const register = (req, res) => {
   //check if user exists
   const q = "SELECT * FROM users WHERE email = ?";
@@ -98,7 +99,7 @@ export const registerBusiness = (req, res) => {
         .status(409)
         .json({ message: "Business with that email already exists!" });
 
-    Geocoder.from(req.body.address)
+    geocodeAddress(req.body.address)
       .then((json) => {
         let coords = json.results[0].geometry.location;
         const salt = bcrypt.genSaltSync(10);
