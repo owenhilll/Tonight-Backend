@@ -1,5 +1,5 @@
 import Express from "express";
-
+import * as dotenv from "dotenv";
 const app = Express();
 import authRoutes from "./routes/auth.js";
 import relationshipRoutes from "./routes/relationship.js";
@@ -10,12 +10,13 @@ import eventRoutes from "./routes/events.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { Client } from "@googlemaps/google-maps-services-js";
+dotenv.config();
 export async function geocodeAddress(address) {
   try {
     const response = await client.geocode({
       params: {
         address: address,
-        key: '"AIzaSyCdlWWT4orEFXd1APChCUCuAPNa9kuOihE"', // Replace with your actual API key
+        key: process.env.API_KEY, // Replace with your actual API key
       },
     });
 
