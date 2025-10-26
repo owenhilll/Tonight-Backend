@@ -1,5 +1,6 @@
 import mysql from "mysql2";
 import * as dotenv from "dotenv";
+import { S3Client } from "@aws-sdk/client-s3";
 
 dotenv.config();
 export const db = mysql.createConnection({
@@ -18,4 +19,12 @@ db.connect((err) => {
     console.log("Successfully connected to MySQL!");
     // Proceed with database operations
   }
+});
+
+export const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });

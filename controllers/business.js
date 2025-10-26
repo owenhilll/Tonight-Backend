@@ -1,5 +1,8 @@
-import { db } from "../connect.js";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { db, s3 } from "../connect.js";
 import jwt from "jsonwebtoken";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
 //Get a business
 export const getBusiness = (req, res) => {
   const userid = req.params.businessid;
@@ -31,16 +34,31 @@ export const setBusiness = (req, res) => {
   });
 };
 
-export const setProfilePic = (req, res) => {
+export const PresignedUrlImageUpload = (req, res) => {
   const token = req.cookies.accessToken;
   if (!token) return res.status(401).json("Not logged in");
-  const pic = req.body.pic;
-  jwt.verify(token, "secretkey", (err, userinfo) => {
-    const q = "UPDATE businesses SET profilepic = ? WHERE id = ?";
-    console.log(q);
-    db.query(q, [pic, userinfo.id], (err, data) => {
-      if (err) return res.status(500).json(err);
-      return res.status(200).json(data);
-    });
+
+  const type = req.body.fetchtype;
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
+    const fileName = "business_" + req.query.id + "profile_pic";
+    if (type == "getObject") {
+      const params = new GetObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: fileName,
+        // Expires: 60,
+        ContentType: "image/png", // URL valid for 60 seconds
+      });
+
+      return await getSignedUrl(type, params, { expiresIn: 60 });
+    } else if (type == "putObject") {
+      const params = new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: fileName,
+        // Expires: 60,
+        ContentType: "image/png", // URL valid for 60 seconds
+      });
+
+      return await getSignedUrl(type, params, { expiresIn: 60 });
+    }
   });
 };
