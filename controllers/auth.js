@@ -101,7 +101,7 @@ export const registerBusiness = (req, res) => {
 
     geocodeAddress(req.body.address)
       .then((json) => {
-        let coords = json.results[0].geometry.location;
+        let coords = json.geometry.location;
         const salt = bcrypt.genSaltSync(10);
         const hashedPW = bcrypt.hash(req.body.password, salt);
         hashedPW.then(function (result) {
@@ -112,6 +112,10 @@ export const registerBusiness = (req, res) => {
             req.body.email +
             "', password='" +
             result +
+            "', city='" +
+            json.address_components[3].long_name +
+            "', state='" +
+            json.address_components[5].long_name +
             "', address='" +
             req.body.address +
             "', coordinates=POINT(" +

@@ -44,7 +44,7 @@ export const getFollowing = (req, res) => {
   });
 };
 
-export const getUserEvents = (req, res) => {
+export const getEventsFromBusiness = (req, res) => {
   var id = req.params.userid;
   const q = "SELECT * FROM events WHERE businessid = ?";
   db.query(q, [id], (err, data) => {
@@ -86,14 +86,38 @@ export const addEvent = (req, res) => {
 
   jwt.verify(token, "secretkey", (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
+    let dateParts = req.body.date.split("-");
+    let timeParts = req.body.time.split(":");
+    var time = req.body.time + " " + req.body.timePeriod;
+    var hours = Number(time.match(/^(\d+)/)[1]);
+    var minutes = Number(time.match(/:(\d+)/)[1]);
+    var AMPM = time.match(/\s(.*)$/)[1];
+    if (AMPM == "PM" && hours < 12) hours = hours + 12;
+    if (AMPM == "AM" && hours == 12) hours = hours - 12;
+    var sHours = hours.toString();
+    var sMinutes = minutes.toString();
+    if (hours < 10) sHours = "0" + sHours;
+    if (minutes < 10) sMinutes = "0" + sMinutes;
+
+    const dateformat =
+      dateParts[2] +
+      "-" +
+      dateParts[0] +
+      "-" +
+      dateParts[1] +
+      " " +
+      sHours +
+      ":" +
+      sMinutes +
+      ":00";
     const q =
-      "INSERT INTO events (`desc`, `category`, `title`,`date`, `time`, `businessid`) VALUES (?)";
+      "INSERT INTO events (`desc`, `category`, `title`,`date`, `businessid`) VALUES (?)";
 
     const values = [
       req.body.desc,
       req.body.category,
       req.body.title,
-      moment(Date.now()).format("YYYY-MM-DD HH:mm:ss"),
+      dateformat,
       userinfo.id,
     ];
     db.query(q, [values], (err, data) => {

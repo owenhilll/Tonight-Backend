@@ -11,24 +11,24 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { Client } from "@googlemaps/google-maps-services-js";
 dotenv.config();
+const client = new Client({});
 export async function geocodeAddress(address) {
   try {
-    const response = await Client.geocode({
+    const response = await client.geocode({
       params: {
         address: address,
         key: process.env.API_KEY, // Replace with your actual API key
       },
     });
 
-    if (response.data.status === "OK") {
-      const location = response.data.results[0].geometry.location;
-    } else {
-      console.error(`Geocoding failed: ${response.data.status}`);
+    if (response.data.status != "OK") {
+      throw new Error("Geocoding failed");
     }
+    return response.data.results[0];
   } catch (error) {
     console.error("Error during geocoding:", error);
+    throw new Error("Geocoding failed");
   }
-  return response;
 }
 //middleware
 app.use((req, res, next) => {
