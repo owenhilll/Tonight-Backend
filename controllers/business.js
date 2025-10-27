@@ -38,9 +38,9 @@ export const PresignedUrlImageUpload = (req, res) => {
   const token = req.cookies.accessToken;
   if (!token) return res.status(401).json("Not logged in");
 
-  const type = req.body.fetchtype;
+  const type = req.query.fetchtype;
   jwt.verify(token, "secretkey", async (err, userinfo) => {
-    const fileName = "business_" + req.query.id + "profile_pic";
+    const fileName = "business_" + req.query.id + "_profile_pic";
     if (type == "getObject") {
       const params = new GetObjectCommand({
         Bucket: process.env.S3_BUCKET_NAME,
@@ -49,7 +49,8 @@ export const PresignedUrlImageUpload = (req, res) => {
         ContentType: "image/png", // URL valid for 60 seconds
       });
 
-      return await getSignedUrl(type, params, { expiresIn: 60 });
+      const signedUrl = await getSignedUrl(s3, params, { expiresIn: 60 });
+      return res.json(signedUrl);
     } else if (type == "putObject") {
       const params = new PutObjectCommand({
         Bucket: process.env.S3_BUCKET_NAME,
@@ -58,7 +59,8 @@ export const PresignedUrlImageUpload = (req, res) => {
         ContentType: "image/png", // URL valid for 60 seconds
       });
 
-      return await getSignedUrl(type, params, { expiresIn: 60 });
+      const signedUrl = await getSignedUrl(s3, params, { expiresIn: 60 });
+      return res.json(signedUrl);
     }
   });
 };
