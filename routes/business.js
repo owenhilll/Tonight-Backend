@@ -9,6 +9,6 @@ const router = express.Router();
 
 router.get("/find/:businessid", getBusiness);
 router.post("/", setBusiness);
-router.get("/edit/profilepic", PresignedUrlImageUpload);
+router.get("/profilepic", PresignedUrlImageUpload);
 
 export default router;
