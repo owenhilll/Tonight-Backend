@@ -87,31 +87,22 @@ export const addEvent = (req, res) => {
   jwt.verify(token, "secretkey", (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
     let dateParts = req.body.date.split("-");
-    let timeParts = req.body.time.split(":");
-    var time = req.body.time + " " + req.body.timePeriod;
-    var hours = Number(time.match(/^(\d+)/)[1]);
-    var minutes = Number(time.match(/:(\d+)/)[1]);
-    var AMPM = time.match(/\s(.*)$/)[1];
-    if (AMPM == "PM" && hours < 12) hours = hours + 12;
-    if (AMPM == "AM" && hours == 12) hours = hours - 12;
-    var sHours = hours.toString();
-    var sMinutes = minutes.toString();
-    if (hours < 10) sHours = "0" + sHours;
-    if (minutes < 10) sMinutes = "0" + sMinutes;
 
+    var time = req.body.time;
+    var timeparts = req.body.time.split(":");
     const dateformat =
-      dateParts[2] +
-      "-" +
       dateParts[0] +
       "-" +
       dateParts[1] +
+      "-" +
+      dateParts[2] +
       " " +
-      sHours +
+      timeparts[0] +
       ":" +
-      sMinutes +
+      timeparts[1] +
       ":00";
     const q =
-      "INSERT INTO events (`desc`, `category`, `title`,`date`, `businessid`) VALUES (?)";
+      "INSERT INTO events (`desc`, `category`, `title`,`date`, `businessid`, `url`) VALUES (?)";
 
     const values = [
       req.body.desc,
@@ -119,9 +110,9 @@ export const addEvent = (req, res) => {
       req.body.title,
       dateformat,
       userinfo.id,
+      req.body.website,
     ];
     db.query(q, [values], (err, data) => {
-      console.log(err);
       if (err) return res.status(500).json(err);
       return res.status(200).json("Post has been created!");
     });
