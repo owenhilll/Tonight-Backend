@@ -71,6 +71,29 @@ export const addInteraction = (req, res) => {
   });
 };
 
+export const updateEvent = (req, res) => {
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in");
+
+  jwt.verify(token, "secretkey", (err, userinfo) => {
+    var id = req.query.id;
+    let dateParts = req.body.editDate.split("T");
+    if (dateParts[1].endsWith(".000Z"))
+      dateParts[1] = dateParts[1].slice(0, -5);
+    const dateformat = dateParts[0] + " " + dateParts[1];
+    const q =
+      "UPDATE events SET `title` = ?, `desc` = ?, `date` = ? WHERE id = ?";
+    db.query(
+      q,
+      [req.body.editTitle, req.body.editDesc, dateformat, id],
+      (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json(data);
+      }
+    );
+  });
+};
+
 export const addView = (req, res) => {
   var id = req.query.eventid;
   const q = "UPDATE events SET views = views + 1 WHERE id = ?";
@@ -86,21 +109,9 @@ export const addEvent = (req, res) => {
 
   jwt.verify(token, "secretkey", (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
-    let dateParts = req.body.date.split("-");
+    let dateParts = req.body.date.split("T");
 
-    var time = req.body.time;
-    var timeparts = req.body.time.split(":");
-    const dateformat =
-      dateParts[0] +
-      "-" +
-      dateParts[1] +
-      "-" +
-      dateParts[2] +
-      " " +
-      timeparts[0] +
-      ":" +
-      timeparts[1] +
-      ":00";
+    const dateformat = dateParts[0] + " " + dateParts[1];
     const q =
       "INSERT INTO events (`desc`, `category`, `title`,`date`, `businessid`, `url`) VALUES (?)";
 
