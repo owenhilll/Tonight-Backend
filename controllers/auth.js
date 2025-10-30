@@ -3,6 +3,18 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { geocodeAddress } from "../index.js";
 
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.GMAIL_ACCT,
+    pass: process.env.GMAIL_PW,
+  },
+});
+
 export const register = (req, res) => {
   //check if user exists
   const q = "SELECT * FROM users WHERE email = ?";
@@ -124,12 +136,12 @@ export const registerBusiness = (req, res) => {
             coords.lat +
             ")";
 
-          db.query(q, (err, data) => {
-            console.log(err);
-            if (err) return res.status(500).json(err);
-
-            return res.status(200).json("Business Register Successfully");
-          });
+          const mailOptions = {
+            from: process.env.GMAIL_ACCT,
+            to: process.env.GMAIL_PW,
+            subject: "Registration Request: " + req.body.licenseID,
+            text: q,
+          };
         });
         //create new user
       })

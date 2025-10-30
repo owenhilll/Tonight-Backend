@@ -6,6 +6,7 @@ import relationshipRoutes from "./routes/relationship.js";
 import placeRoutes from "./routes/business.js";
 import commentsRoutes from "./routes/comments.js";
 import likeRoutes from "./routes/likes.js";
+import bookmarkRoutes from "./routes/bookmark.js";
 import eventRoutes from "./routes/events.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -17,7 +18,7 @@ export async function geocodeAddress(address) {
     const response = await client.geocode({
       params: {
         address: address,
-        key: process.env.API_KEY, // Replace with your actual API key
+        key: process.env.API_KEY,
       },
     });
 
@@ -49,6 +50,7 @@ app.use("/api/comments", commentsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/relationship", relationshipRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
 
 app.listen(8800, () => {
   console.log("API working");

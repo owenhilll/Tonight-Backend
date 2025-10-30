@@ -5,32 +5,42 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 //Get a business
 export const getBusiness = (req, res) => {
-  const userid = req.params.businessid;
-  if (!userid) return res.status(500).json("Invallid business ID");
-  const q = "SELECT * FROM businesses WHERE id = ?";
-  db.query(q, [userid], (err, data) => {
-    if (err) return res.status(500).json(err);
-    const { password, ...info } = data[0];
-    return res.json(info);
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in");
+
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
+    const userid = req.params.businessid;
+    if (!userid) return res.status(500).json("Invallid business ID");
+    const q = "SELECT * FROM businesses WHERE id = ?";
+    db.query(q, [userid], (err, data) => {
+      if (err) return res.status(500).json(err);
+      const { password, ...info } = data[0];
+      return res.json(info);
+    });
   });
 };
 
 //Register a business or event
 export const setBusiness = (req, res) => {
-  const q =
-    "INSERT INTO businesses (`name`,`category`,`password`, `email`) VALUES = (?)";
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in");
 
-  const values = [
-    req.body.name,
-    req.body.category,
-    req.body.password,
-    req.body.email,
-  ];
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
+    const q =
+      "INSERT INTO businesses (`name`,`category`,`password`, `email`) VALUES = (?)";
 
-  db.query(q, [values], (err, data) => {
-    if (err) return res.status(500).json(err);
-    const { password, ...info } = data[0];
-    return res.json(info);
+    const values = [
+      req.body.name,
+      req.body.category,
+      req.body.password,
+      req.body.email,
+    ];
+
+    db.query(q, [values], (err, data) => {
+      if (err) return res.status(500).json(err);
+      const { password, ...info } = data[0];
+      return res.json(info);
+    });
   });
 };
 

@@ -3,28 +3,38 @@ import { db } from "../connect.js";
 import jwt from "jsonwebtoken";
 
 export const getNear = (req, res) => {
-  var coords = req.query;
-  if (req.query.category != "") {
-    const q = `SELECT events.* FROM events 
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in");
+
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
+    var coords = req.query;
+    var radius = req.query.radius;
+    if (req.query.category != "") {
+      let q = `SELECT events.* FROM events 
     LEFT JOIN businesses ON 
-    (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${coords.x},${coords.y})) * .000621371192) <= 1 
+    (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${coords.x},${coords.y})) * .000621371192) <= ${radius} 
     where events.businessid = businesses.id AND events.category = '${req.query.category}'`;
-
-    db.query(q, [req.query.category], (err, data) => {
-      if (err) return res.status(500).json(err);
-      return res.status(200).json(data);
-    });
-  } else {
-    const q = `SELECT events.* FROM events 
+      if (req.query.limit) {
+        q = q + " limit 5";
+      }
+      db.query(q, [req.query.category], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json(data);
+      });
+    } else {
+      let q = `SELECT events.* FROM events 
     LEFT JOIN businesses ON 
-    (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${coords.x},${coords.y})) * .000621371192) <= 1 
+    (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${coords.x},${coords.y})) * .000621371192) <= ${radius} 
     where events.businessid = businesses.id`;
-
-    db.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-      return res.status(200).json(data);
-    });
-  }
+      if (req.query.limit) {
+        q = q + " limit 5";
+      }
+      db.query(q, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json(data);
+      });
+    }
+  });
 };
 
 export const getFollowing = (req, res) => {
@@ -45,20 +55,45 @@ export const getFollowing = (req, res) => {
 };
 
 export const getEventsFromBusiness = (req, res) => {
-  var id = req.params.userid;
-  const q = "SELECT * FROM events WHERE businessid = ?";
-  db.query(q, [id], (err, data) => {
-    if (err) return res.status(500).json(err);
-    return res.status(200).json(data);
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in");
+
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
+    var id = req.params.userid;
+    const q = "SELECT * FROM events WHERE businessid = ?";
+    db.query(q, [id], (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json(data);
+    });
+  });
+};
+
+export const getEventsById = (req, res) => {
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in");
+
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
+    var id = req.query.eventid;
+    if (!id) return;
+    const q = "SELECT * FROM events WHERE id = ?";
+    db.query(q, [id], (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json(data);
+    });
   });
 };
 
 export const deleteEvent = (req, res) => {
-  var id = req.query.eventid;
-  const q = "DELETE FROM events WHERE id = ?";
-  db.query(q, [id], (err, data) => {
-    if (err) return res.status(500).json(err);
-    return res.status(200).json(data);
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in");
+
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
+    var id = req.query.eventid;
+    const q = "DELETE FROM events WHERE id = ?";
+    db.query(q, [id], (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json(data);
+    });
   });
 };
 
@@ -95,11 +130,16 @@ export const updateEvent = (req, res) => {
 };
 
 export const addView = (req, res) => {
-  var id = req.query.eventid;
-  const q = "UPDATE events SET views = views + 1 WHERE id = ?";
-  db.query(q, [id], (err, data) => {
-    if (err) return res.status(500).json(err);
-    return res.status(200).json(data);
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in");
+
+  jwt.verify(token, "secretkey", (err, userinfo) => {
+    var id = req.query.eventid;
+    const q = "UPDATE events SET views = views + 1 WHERE id = ?";
+    db.query(q, [id], (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json(data);
+    });
   });
 };
 
