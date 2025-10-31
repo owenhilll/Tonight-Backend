@@ -2,13 +2,13 @@ import express from "express";
 import {
   getBusiness,
   PresignedUrlImageUpload,
-  setBusiness,
+  setBusinessWebsite,
 } from "../controllers/business.js";
 
 const router = express.Router();
 
 router.get("/find/:businessid", getBusiness);
-router.post("/", setBusiness);
+router.put("/website", setBusinessWebsite);
 router.get("/profilepic", PresignedUrlImageUpload);
 
 export default router;
