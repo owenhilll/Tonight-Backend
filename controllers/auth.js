@@ -5,9 +5,7 @@ import { geocodeAddress } from "../index.js";
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  service: "gmail",
   auth: {
     user: process.env.GMAIL_ACCT,
     pass: process.env.GMAIL_PW,
@@ -135,10 +133,35 @@ export const registerBusiness = (req, res) => {
 
           const mailOptions = {
             from: process.env.GMAIL_ACCT,
-            to: process.env.GMAIL_PW,
+            to: process.env.GMAIL_ACCT,
             subject: "Registration Request: " + req.body.licenseID,
             text: q,
           };
+
+          const mailOptions2 = {
+            from: process.env.GMAIL_ACCT,
+            to: req.body.email,
+            subject: "Registration Request: " + req.body.licenseID,
+            text: "We have recieved your business application! Our team will review your information get back to you within 2 business days.",
+          };
+
+          transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+              res.status(500).json(err);
+            }
+          });
+
+          transporter.sendMail(mailOptions2, (err, info) => {
+            if (err) {
+              res.status(500).json(err);
+            } else {
+              res.status(200).json("Success");
+            }
+          });
+
+          // nodemailer.createTransport(mailOptions2);
+
+          // return res.status(200).json("Success");
         });
         //create new user
       })
