@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { db } from "../connect.js";
 export const CreateBookmark = (req, res) => {
-  const token = req.cookies.accessToken;
+  const token = req.headers.authorization;
   if (!token) return res.status(401).json("Not logged in");
 
   jwt.verify(token, "secretkey", async (err, userinfo) => {
@@ -19,7 +19,7 @@ export const CreateBookmark = (req, res) => {
   });
 };
 export const DeleteBookmark = (req, res) => {
-  const token = req.cookies.accessToken;
+  const token = req.headers.authorization;
   if (!token) return res.status(401).json("Not logged in");
 
   jwt.verify(token, "secretkey", async (err, userinfo) => {
@@ -32,7 +32,7 @@ export const DeleteBookmark = (req, res) => {
   });
 };
 export const GetBookmarks = (req, res) => {
-  const token = req.cookies.accessToken;
+  const token = req.headers.authorization;
   if (!token) return res.status(401).json("Not logged in");
 
   jwt.verify(token, "secretkey", async (err, userinfo) => {

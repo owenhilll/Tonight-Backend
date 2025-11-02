@@ -5,10 +5,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 //Get a business
 export const getBusiness = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     const userid = req.params.businessid;
     if (!userid) return res.status(500).json("Invallid business ID");
     const q = "SELECT * FROM businesses WHERE id = ?";
@@ -22,10 +23,11 @@ export const getBusiness = (req, res) => {
 
 //Register a business or event
 export const setBusinessWebsite = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     const q = "UPDATE businesses SET `website` = ? WHERE id = ?";
 
     db.query(q, [req.body.website, req.body.id], (err, data) => {
@@ -36,11 +38,12 @@ export const setBusinessWebsite = (req, res) => {
 };
 
 export const PresignedUrlImageUpload = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
-
   const type = req.query.fetchtype;
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  const token = req.headers.authorization;
+
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     const fileName = "business_" + req.query.id + "_profile_pic";
     if (type == "getObject") {
       const params = new GetObjectCommand({

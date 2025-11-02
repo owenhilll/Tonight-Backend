@@ -3,17 +3,16 @@ import { db } from "../connect.js";
 import jwt from "jsonwebtoken";
 
 export const getNear = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
+    if (err) return res.status(401).json("Token Invalid");
     var coords = req.query;
     var radius = req.query.radius;
     if (req.query.category != "") {
-      let q = `SELECT events.* FROM events 
-    LEFT JOIN businesses ON 
-    (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${coords.x},${coords.y})) * .000621371192) <= ${radius} 
-    where events.businessid = businesses.id AND events.category = '${req.query.category}'`;
+      let q = `SELECT events.* FROM events LEFT JOIN businesses ON (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${coords.x},${coords.y})) * .000621371192) <= ${radius} where events.businessid = businesses.id AND events.category = '${req.query.category}'`;
       if (req.query.limit) {
         q = q + " limit 5";
       }
@@ -38,10 +37,11 @@ export const getNear = (req, res) => {
 };
 
 export const getFollowing = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
 
     const q =
@@ -55,10 +55,11 @@ export const getFollowing = (req, res) => {
 };
 
 export const getEventsFromBusiness = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     var id = req.params.userid;
     const q = "SELECT * FROM events WHERE businessid = ?";
     db.query(q, [id], (err, data) => {
@@ -69,10 +70,11 @@ export const getEventsFromBusiness = (req, res) => {
 };
 
 export const getEventsById = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     var id = req.query.eventid;
     if (!id) return;
     const q = "SELECT * FROM events WHERE id = ?";
@@ -84,10 +86,11 @@ export const getEventsById = (req, res) => {
 };
 
 export const deleteEvent = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     var id = req.query.eventid;
     const q = "DELETE FROM events WHERE id = ?";
     db.query(q, [id], (err, data) => {
@@ -107,10 +110,11 @@ export const addInteraction = (req, res) => {
 };
 
 export const updateEvent = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     var id = req.query.id;
     let dateParts = req.body.editDate.split("T");
     if (dateParts[1].endsWith(".000Z"))
@@ -130,10 +134,11 @@ export const updateEvent = (req, res) => {
 };
 
 export const addView = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     var id = req.query.eventid;
     const q = "UPDATE events SET views = views + 1 WHERE id = ?";
     db.query(q, [id], (err, data) => {
@@ -144,13 +149,15 @@ export const addView = (req, res) => {
 };
 
 export const addEvent = (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json("Not logged in");
+  const token = req.headers.authorization;
 
-  jwt.verify(token, "secretkey", (err, userinfo) => {
+  if (!token) return res.status(401).json("Not logged in");
+  var t = token.toString().substring(1, token.length - 1);
+  jwt.verify(t, "secretkey", async (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
     let dateParts = req.body.date.split("T");
-
+    if (dateParts[1].endsWith(".000Z"))
+      dateParts[1] = dateParts[1].slice(0, -5);
     const dateformat = dateParts[0] + " " + dateParts[1];
     const q =
       "INSERT INTO events (`desc`, `category`, `title`,`date`, `businessid`, `url`) VALUES (?)";

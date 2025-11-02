@@ -55,9 +55,8 @@ const businessLogin = (req, res) => {
       const { password, ...others } = data[0];
 
       res
-        .cookie("accessToken", token, { httpOnly: true })
         .status(200)
-        .json({ data: { user: others, business: true } });
+        .json({ data: { user: others, business: true }, token: token });
     } else {
       return res.status(400).json({ message: "Wrong username or password!" });
     }
@@ -84,9 +83,8 @@ export const login = (req, res) => {
       const { password, ...others } = data[0];
 
       res
-        .cookie("accessToken", token, { httpOnly: true })
         .status(200)
-        .json({ data: { user: others, business: false } });
+        .json({ data: { user: others, business: false }, token: token });
     } else {
       return res.status(400).json({ message: "Wrong username or password!" });
     }
