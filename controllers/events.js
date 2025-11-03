@@ -6,8 +6,8 @@ export const getNear = (req, res) => {
   const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not logged in");
-  var t = token.toString().substring(1, token.length - 1);
-  jwt.verify(t, "secretkey", async (err, userinfo) => {
+
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
     if (err) return res.status(401).json("Token Invalid");
     var coords = req.query;
     var radius = req.query.radius;
@@ -40,8 +40,8 @@ export const getFollowing = (req, res) => {
   const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not logged in");
-  var t = token.toString().substring(1, token.length - 1);
-  jwt.verify(t, "secretkey", async (err, userinfo) => {
+
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
 
     const q =
@@ -73,8 +73,7 @@ export const getEventsById = (req, res) => {
   const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not logged in");
-  var t = token.toString().substring(1, token.length - 1);
-  jwt.verify(t, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
     var id = req.query.eventid;
     if (!id) return;
     const q = "SELECT * FROM events WHERE id = ?";
@@ -89,8 +88,7 @@ export const deleteEvent = (req, res) => {
   const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not logged in");
-  var t = token.toString().substring(1, token.length - 1);
-  jwt.verify(t, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
     var id = req.query.eventid;
     const q = "DELETE FROM events WHERE id = ?";
     db.query(q, [id], (err, data) => {
@@ -113,8 +111,7 @@ export const updateEvent = (req, res) => {
   const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not logged in");
-  var t = token.toString().substring(1, token.length - 1);
-  jwt.verify(t, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
     var id = req.query.id;
     let dateParts = req.body.editDate.split("T");
     if (dateParts[1].endsWith(".000Z"))
@@ -137,8 +134,7 @@ export const addView = (req, res) => {
   const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not logged in");
-  var t = token.toString().substring(1, token.length - 1);
-  jwt.verify(t, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
     var id = req.query.eventid;
     const q = "UPDATE events SET views = views + 1 WHERE id = ?";
     db.query(q, [id], (err, data) => {
@@ -152,8 +148,7 @@ export const addEvent = (req, res) => {
   const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not logged in");
-  var t = token.toString().substring(1, token.length - 1);
-  jwt.verify(t, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, "secretkey", async (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
     let dateParts = req.body.date.split("T");
     if (dateParts[1].endsWith(".000Z"))

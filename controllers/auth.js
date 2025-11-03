@@ -2,15 +2,9 @@ import { db } from "../connect.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { geocodeAddress } from "../index.js";
-import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_ACCT,
-    pass: process.env.GMAIL_PW,
-  },
-});
+import { sendEmail } from "../utils/email.js";
+import { createHash, randomBytes } from "crypto";
 
 export const register = (req, res) => {
   //check if user exists
@@ -98,7 +92,7 @@ export const logout = (req, res) => {
 
 export const registerBusiness = (req, res) => {
   //check if user exists
-  const q = "SELECT * FROM businesses WHERE email = ?";
+  const q = "SELECT * FROM users WHERE email = ?";
   db.query(q, [req.body.email], (err, data) => {
     if (err) return res.status(500).json(err);
     if (data.length)
@@ -111,9 +105,9 @@ export const registerBusiness = (req, res) => {
         let coords = json.geometry.location;
         const salt = bcrypt.genSaltSync(10);
         const hashedPW = bcrypt.hash(req.body.password, salt);
-        hashedPW.then(function (result) {
+        hashedPW.then(async function (result) {
           const q =
-            "INSERT INTO businesses SET name='" +
+            "INSERT INTO users SET name='" +
             req.body.name +
             "', email='" +
             req.body.email +
@@ -134,7 +128,11 @@ export const registerBusiness = (req, res) => {
           const mailOptions = {
             from: process.env.GMAIL_ACCT,
             to: process.env.GMAIL_ACCT,
-            subject: "Registration Request: " + req.body.licenseID,
+            subject:
+              "Registration Request: " +
+              req.body.licenseID +
+              " cell: " +
+              req.body.number,
             text: q,
           };
 
@@ -144,29 +142,122 @@ export const registerBusiness = (req, res) => {
             subject: "Registration Request: " + req.body.licenseID,
             text: "We have recieved your business application! Our team will review your information get back to you within 2 business days.",
           };
+          const res = await sendEmail(mailOptions);
+          const res2 = await sendEmail(mailOptions2);
 
-          transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-              res.status(500).json(err);
-            }
-          });
-
-          transporter.sendMail(mailOptions2, (err, info) => {
-            if (err) {
-              res.status(500).json(err);
-            } else {
-              res.status(200).json("Success");
-            }
-          });
-
-          // nodemailer.createTransport(mailOptions2);
-
-          // return res.status(200).json("Success");
+          if (!res || !res2) {
+            res.status(500).json("Error sending email");
+          } else {
+            res.status(200).json("Success");
+          }
         });
-        //create new user
       })
       .catch((err) => {
         return res.status(500).json(err);
       });
   });
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const findUser = "SELECT * FROM users WHERE email = ?";
+    db.query(findUser, [email], (err, userData) => {
+      let user = {};
+      if (err) return res.status(500).json(err);
+      if (userData.length === 0) {
+        const findBusiness = "SELECT * FROM businesses WHERE email = ?";
+        db.query(findBusiness, [email], (err, businessData) => {
+          if (businessData.length === 0) {
+            return res.status(409).json("User not Found!");
+          } else {
+            user = businessData[0];
+          }
+        });
+      } else {
+        user = userData[0];
+      }
+
+      const token = randomBytes(20).toString("hex");
+      const resetToken = createHash("sha256").update(token).digest("hex");
+      const createdAt = new Date().toISOString();
+      const expiresAt = new Date(
+        Date.now() + 60 * 60 * 24 * 1000
+      ).toISOString();
+
+      const deleteToken = "DELETE FROM reset_tokens WHERE email = ?";
+      db.query(deleteToken, [email], () => {});
+
+      const updateToken = `INSERT INTO reset_tokens(token, created_at, expires_at, email) VALUES ('${resetToken}', '${createdAt}', '${expiresAt}', '${email}')`;
+
+      db.query(updateToken, async (err, data) => {
+        if (err) return res.status(500).json("Failed to update reset token");
+
+        const mailOption = {
+          from: process.env.GMAIL_ACCT,
+          to: email,
+          subject: "Forgot Password Link",
+          text:
+            "We have received a request to reset your password. Please reset your password using the link below. \n" +
+            `${process.env.FRONTEND_URL}/ResetPassword?email=${email}&token=${resetToken}`,
+        };
+        const mailStatus = await sendEmail(mailOption);
+        if (mailStatus) {
+          return res
+            .status(200)
+            .json("A password reset link has been sent to your email.");
+        } else {
+          return res.status(500).json("Failed to send email");
+        }
+      });
+    });
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { password, token, email } = req.body;
+    const q = `SELECT token, expires_at FROM reset_tokens WHERE email = '${email}' ORDER BY created_at DESC LIMIT 1`;
+    db.query(q, async (err, data) => {
+      if (data.length === 0) {
+        return res.json(500).json("No refresh token found");
+      }
+
+      const currDate = new Date();
+      const expiresAt = new Date(data[0].expires_at);
+
+      if (currDate > expiresAt) {
+        return res.status(500).json("Token expired!");
+      } else if (data[0].token !== token) {
+        return res.status(500).json("Invalid Link");
+      } else {
+        const salt = bcrypt.genSaltSync(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const findUser = "SELECT * FROM users WHERE email = ?";
+        db.query(findUser, [email], (err, data) => {
+          let q = "";
+          if (data.length === 0) {
+            q = `UPDATE businesses SET password = '${hashedPassword}' WHERE email = '${email}'`;
+          } else {
+            q = `UPDATE users SET password = '${hashedPassword}' WHERE email = '${email}'`;
+          }
+
+          db.query(q, (err, info) => {
+            if (err) return res.status(500).json("Error");
+            else {
+              const deleteToken = "DELETE FROM reset_tokens WHERE email = ?";
+              db.query(deleteToken, [email], () => {});
+              return res.status(200).json("Success");
+            }
+          });
+        });
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
 };

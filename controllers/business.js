@@ -22,18 +22,22 @@ export const getBusiness = (req, res) => {
 };
 
 //Register a business or event
-export const setBusinessWebsite = (req, res) => {
-  const token = req.headers.authorization;
+export const updateBusinessInfomation = (req, res) => {
+  const token = req.body.headers.Authorization;
 
   if (!token) return res.status(401).json("Not logged in");
   var t = token.toString().substring(1, token.length - 1);
   jwt.verify(t, "secretkey", async (err, userinfo) => {
-    const q = "UPDATE businesses SET `website` = ? WHERE id = ?";
+    const q = "UPDATE businesses SET website = ?, number = ? WHERE id = ?";
 
-    db.query(q, [req.body.website, req.body.id], (err, data) => {
-      if (err) return res.status(500).json(err);
-      return res.status(200).json("Successfully update user website");
-    });
+    db.query(
+      q,
+      [req.body.website, req.body.number, req.body.id],
+      (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Successfully update user website");
+      }
+    );
   });
 };
 
