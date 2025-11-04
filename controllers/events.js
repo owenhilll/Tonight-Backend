@@ -114,14 +114,18 @@ export const updateEvent = (req, res) => {
   jwt.verify(token, "secretkey", async (err, userinfo) => {
     var id = req.query.id;
     let dateParts = req.body.editDate.split("T");
+    let totalHours = req.body.totalHours;
+    if (isNaN(totalHours)) {
+      return res.status(500).json("Duration is not in the correct format!");
+    }
     if (dateParts[1].endsWith(".000Z"))
       dateParts[1] = dateParts[1].slice(0, -5);
     const dateformat = dateParts[0] + " " + dateParts[1];
     const q =
-      "UPDATE events SET `title` = ?, `desc` = ?, `date` = ? WHERE id = ?";
+      "UPDATE events SET `title` = ?, `desc` = ?, `date` = ?, `duration` = ? WHERE id = ?";
     db.query(
       q,
-      [req.body.editTitle, req.body.editDesc, dateformat, id],
+      [req.body.editTitle, req.body.editDesc, dateformat, totalHours, id],
       (err, data) => {
         if (err) return res.status(500).json(err);
         return res.status(200).json(data);
@@ -155,18 +159,19 @@ export const addEvent = (req, res) => {
       dateParts[1] = dateParts[1].slice(0, -5);
     const dateformat = dateParts[0] + " " + dateParts[1];
     const q =
-      "INSERT INTO events (`desc`, `category`, `title`,`date`, `businessid`, `url`) VALUES (?)";
+      "INSERT INTO events (`desc`, `category`, `title`,`date`, `duration`, `businessid`, `url`) VALUES (?)";
 
     const values = [
       req.body.desc,
       req.body.category,
       req.body.title,
       dateformat,
+      req.body.totalHours,
       userinfo.id,
       req.body.website,
     ];
     db.query(q, [values], (err, data) => {
-      if (err) return res.status(500).json(err);
+      if (err) return res.status(500).json({ message: err.message });
       return res.status(200).json("Post has been created!");
     });
   });
