@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { geocodeAddress } from "../index.js";
 
-import { sendEmail } from "../utils/email.js";
+import { sendRegistrationEmail, sendSupportEmail } from "../utils/email.js";
 import { createHash, randomBytes } from "crypto";
 
 export const register = (req, res) => {
@@ -105,7 +105,7 @@ export const registerBusiness = (req, res) => {
         let coords = json.geometry.location;
         const salt = bcrypt.genSaltSync(10);
         const hashedPW = bcrypt.hash(req.body.password, salt);
-        hashedPW.then(async function (result) {
+        hashedPW.then(async (result) => {
           const q =
             "INSERT INTO users SET name='" +
             req.body.name +
@@ -126,8 +126,8 @@ export const registerBusiness = (req, res) => {
             ")";
 
           const mailOptions = {
-            from: process.env.GMAIL_ACCT,
-            to: process.env.GMAIL_ACCT,
+            from: process.env.BUSINESS_REG,
+            to: process.env.BUSINESS_REG,
             subject:
               "Registration Request: " +
               req.body.licenseID +
@@ -137,23 +137,24 @@ export const registerBusiness = (req, res) => {
           };
 
           const mailOptions2 = {
-            from: process.env.GMAIL_ACCT,
+            from: process.env.BUSINESS_REG,
             to: req.body.email,
             subject: "Registration Request: " + req.body.licenseID,
             text: "We have recieved your business application! Our team will review your information get back to you within 2 business days.",
           };
-          const res = await sendEmail(mailOptions);
-          const res2 = await sendEmail(mailOptions2);
 
-          if (!res || !res2) {
-            res.status(500).json("Error sending email");
+          const email1 = await sendRegistrationEmail(mailOptions);
+          const email2 = await sendRegistrationEmail(mailOptions2);
+
+          if (!email1 || !email2) {
+            return res.status(500).json({ message: "Error sending email" });
           } else {
-            res.status(200).json("Success");
+            return res.status(200).json({ message: "Success" });
           }
         });
       })
       .catch((err) => {
-        return res.status(500).json(err);
+        return res.status(500).json({ message: err });
       });
   });
 };
@@ -195,14 +196,23 @@ export const forgotPassword = async (req, res) => {
         if (err) return res.status(500).json("Failed to update reset token");
 
         const mailOption = {
-          from: process.env.GMAIL_ACCT,
+          from: process.env.SUPPORT,
           to: email,
-          subject: "Forgot Password Link",
-          text:
-            "We have received a request to reset your password. Please reset your password using the link below. \n" +
-            `${process.env.FRONTEND_URL}/ResetPassword?email=${email}&token=${resetToken}`,
+          subject: "Locale: Password Reset",
+          html: `<div>
+                  <h1>Locale: Password Reset Request</h1>
+                  <h5>We have received a password reset request for your account</h5>
+                  <h5>To reset your password, click the link below.</h5>
+                  <a href="${process.env.FRONTEND_URL}/ResetPassword?email=${email}&token=${resetToken}">Reset Password</a>
+                  <hr />
+                  <h1><span style="color: #ff9900;">Locale App</span></h1>
+                  <h3>Discover your area!</h3>
+                  <div><u><a href="https://localeapplive.com">https://localeapplive.com</a></u></div>
+                  <div>&nbsp;</div>
+                  <div><strong>Support</strong>: support@localeapplive.com</div>
+                </div>`,
         };
-        const mailStatus = await sendEmail(mailOption);
+        const mailStatus = await sendSupportEmail(mailOption);
         if (mailStatus) {
           return res
             .status(200)

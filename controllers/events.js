@@ -12,14 +12,31 @@ export const getNear = (req, res) => {
     var coords = req.query;
     var radius = req.query.radius;
     if (req.query.category != "") {
-      let q = `SELECT events.* FROM events LEFT JOIN businesses ON (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${coords.x},${coords.y})) * .000621371192) <= ${radius} where events.businessid = businesses.id AND events.category = '${req.query.category}'`;
-      if (req.query.limit) {
-        q = q + " limit 5";
+      if (Array.isArray(req.query.category)) {
+        let q = `SELECT events.* FROM events LEFT JOIN businesses ON (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${
+          coords.x
+        },${
+          coords.y
+        })) * .000621371192) <= ${radius} where events.businessid = businesses.id AND events.category IN ('${req.query.category.join(
+          "','"
+        )}')`;
+        if (req.query.limit) {
+          q = q + " limit 5";
+        }
+        db.query(q, [req.query.category], (err, data) => {
+          if (err) return res.status(500).json(err);
+          return res.status(200).json(data);
+        });
+      } else {
+        let q = `SELECT events.* FROM events LEFT JOIN businesses ON (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${coords.x},${coords.y})) * .000621371192) <= ${radius} where events.businessid = businesses.id AND events.category = '${req.query.category}'`;
+        if (req.query.limit) {
+          q = q + " limit 5";
+        }
+        db.query(q, [req.query.category], (err, data) => {
+          if (err) return res.status(500).json(err);
+          return res.status(200).json(data);
+        });
       }
-      db.query(q, [req.query.category], (err, data) => {
-        if (err) return res.status(500).json(err);
-        return res.status(200).json(data);
-      });
     } else {
       let q = `SELECT events.* FROM events 
     LEFT JOIN businesses ON 
