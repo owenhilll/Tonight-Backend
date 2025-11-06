@@ -11,7 +11,7 @@ export const getNear = (req, res) => {
     if (err) return res.status(401).json("Token Invalid");
     var coords = req.query;
     var radius = req.query.radius;
-    if (req.query.category != "") {
+    if (req.query.category != "" && req.query.category != null) {
       if (Array.isArray(req.query.category)) {
         let q = `SELECT events.* FROM events LEFT JOIN businesses ON (ST_DISTANCE_SPHERE(point(ST_X(coordinates), ST_Y(coordinates)), point(${
           coords.x
