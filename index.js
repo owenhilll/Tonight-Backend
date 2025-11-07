@@ -1,6 +1,5 @@
 import Express from "express";
 import * as dotenv from "dotenv";
-const app = Express();
 import authRoutes from "./routes/auth.js";
 import relationshipRoutes from "./routes/relationship.js";
 import placeRoutes from "./routes/business.js";
@@ -9,29 +8,15 @@ import likeRoutes from "./routes/likes.js";
 import bookmarkRoutes from "./routes/bookmark.js";
 import eventRoutes from "./routes/events.js";
 import cookieParser from "cookie-parser";
+import https from "https";
 import cors from "cors";
 import "./utils/scheduledTasks.js";
 import { Client } from "@googlemaps/google-maps-services-js";
-dotenv.config();
-const client = new Client({});
-export async function geocodeAddress(address) {
-  try {
-    const response = await client.geocode({
-      params: {
-        address: address,
-        key: process.env.API_KEY,
-      },
-    });
+import fs from "fs";
 
-    if (response.data.status != "OK") {
-      throw new Error("Geocoding failed");
-    }
-    return response.data.results[0];
-  } catch (error) {
-    console.error("Error during geocoding:", error);
-    throw new Error("Geocoding failed");
-  }
-}
+dotenv.config();
+const app = Express();
+
 //middleware
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", true);
@@ -42,6 +27,12 @@ app.use(
     origin: "https://localeapplive.com",
   })
 );
+
+var options = {
+  key: fs.readFileSync("client-key.pem"),
+  cert: fs.readFileSync("client-cert.pem"),
+};
+
 app.use(cookieParser());
 app.use(Express.json({ limit: "50mb" }));
 app.use(Express.urlencoded({ limit: "50mb" }));
@@ -53,6 +44,6 @@ app.use("/api/relationship", relationshipRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 //t
-app.listen(8800, () => {
+https.createServer(options, app).listen(8800, () => {
   console.log("API working");
 });

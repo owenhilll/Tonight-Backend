@@ -1,7 +1,7 @@
 import { db } from "../connect.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { geocodeAddress } from "../index.js";
+import { geocodeAddress } from "../utils/Geocoder.js";
 
 import { sendRegistrationEmail, sendSupportEmail } from "../utils/email.js";
 import { createHash, randomBytes } from "crypto";
