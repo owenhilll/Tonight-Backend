@@ -10,6 +10,7 @@ import bookmarkRoutes from "./routes/bookmark.js";
 import eventRoutes from "./routes/events.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import "./utils/scheduledTasks.js";
 import { Client } from "@googlemaps/google-maps-services-js";
 dotenv.config();
 const client = new Client({});
