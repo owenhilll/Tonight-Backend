@@ -24,13 +24,13 @@ app.use((req, res, next) => {
 });
 app.use(
   cors({
-    origin: "https://localeapplive.com",
+    origin: "http://localhost:8081",
   })
 );
 
 var options = {
-  key: fs.readFileSync("client-key.pem"),
-  cert: fs.readFileSync("client-cert.pem"),
+  key: fs.readFileSync("server.key"),
+  cert: fs.readFileSync("server.crt"),
 };
 
 app.use(cookieParser());
@@ -44,6 +44,6 @@ app.use("/api/relationship", relationshipRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 //t
-https.createServer(options, app).listen(8800, () => {
+https.createServer(options, app).listen(443, () => {
   console.log("API working");
 });
