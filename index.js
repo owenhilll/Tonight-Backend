@@ -52,7 +52,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/relationship", relationshipRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
-
+//test
 app.listen(8800, () => {
   console.log("API working");
 });
