@@ -9,22 +9,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: EC2 Deploy
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      
+    - name: Deploy
+      uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATEKEY }}
-        source: "./"  # This now correctly points to the current directory
-        target: "/Home/ec2-user/Locale-Backend"
-
-    - name: Restart Service
-      with:
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATEKEY }}
-        script: sudo systemctl restart locale.service
+        script: |
+           cd /home/ec2-user/Locale-Backend
+           git pull origin main
+           sudo systemctl restart locale.service
