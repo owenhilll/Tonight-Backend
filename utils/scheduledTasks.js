@@ -13,4 +13,4 @@ function clearPastEvents() {
   });
 }
 
-nodeCron.schedule("39 * * * *", clearPastEvents);
+nodeCron.schedule("0 * * * *", clearPastEvents);
