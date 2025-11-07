@@ -4,8 +4,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 
 dotenv.config();
 export const db = mysql.createConnection({
-  host: process.env.RDS_ENDPOINT,
-  port: 3306,
+  host: "localhost",
   user: process.env.MASTER_USERNAME,
   password: process.env.PW,
   database: process.env.DB_NAME,
