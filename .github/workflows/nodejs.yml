@@ -19,7 +19,7 @@ jobs:
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        key: ${{ secrets.SSH_PRIVATEKEY }}
         source: "./"  # This now correctly points to the current directory
         target: "/Home/ec2-user/Locale-Backend"
 
@@ -28,5 +28,5 @@ jobs:
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        key: ${{ secrets.SSH_PRIVATEKEY }}
         script: sudo systemctl restart locale.service
