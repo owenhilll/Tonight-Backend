@@ -29,8 +29,8 @@ app.use(
 );
 
 var options = {
-  key: fs.readFileSync("server.key"),
-  cert: fs.readFileSync("server.crt"),
+  key: fs.readFileSync("localhost.key"),
+  cert: fs.readFileSync("localhost.crt"),
 };
 
 app.use(cookieParser());
@@ -44,6 +44,6 @@ app.use("/api/relationship", relationshipRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 //t
-https.createServer(options, app).listen(443, () => {
+app.listen(8000, () => {
   console.log("API working");
 });
