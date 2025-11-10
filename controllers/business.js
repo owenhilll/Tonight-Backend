@@ -9,7 +9,7 @@ export const getBusiness = (req, res) => {
 
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
     const userid = req.params.businessid;
     if (!userid) return res.status(500).json("Invallid business ID");
     const q = "SELECT * FROM businesses WHERE id = ?";
@@ -27,11 +27,11 @@ export const getBusiness = (req, res) => {
 
 //Register a business or event
 export const updateBusinessInfomation = (req, res) => {
-  const token = req.body.headers.Authorization;
+  const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
     const q = "UPDATE businesses SET website = ?, number = ? WHERE id = ?";
 
     db.query(
@@ -51,7 +51,7 @@ export const PresignedUrlImageUpload = (req, res) => {
 
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
     const fileName = "business_" + req.query.id + "_profile_pic";
     if (type == "getObject") {
       const params = new GetObjectCommand({

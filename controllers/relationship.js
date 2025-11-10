@@ -16,7 +16,7 @@ export const postRelationship = (req, res) => {
   const token = req.cookies.accessToken;
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
 
     const q =
@@ -34,7 +34,7 @@ export const deleteRelationship = (req, res) => {
   const token = req.cookies.accessToken;
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
 
     const q =

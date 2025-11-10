@@ -4,7 +4,7 @@ export const CreateBookmark = (req, res) => {
   const token = req.headers.authorization;
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
     const q =
       "INSERT INTO bookmarks (`eventid`,`userid`,`businessid`) VALUES (?)";
 
@@ -22,7 +22,7 @@ export const DeleteBookmark = (req, res) => {
   const token = req.headers.authorization;
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
     const q = "DELETE FROM bookmarks WHERE userid = ? and eventid = ?";
 
     db.query(q, [req.query.userid, req.query.eventid], (err, data) => {
@@ -35,7 +35,7 @@ export const GetBookmarks = (req, res) => {
   const token = req.headers.authorization;
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", async (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
     let q = "";
     let val = null;
     if (req.query.userid && req.query.eventid) {

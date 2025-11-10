@@ -14,7 +14,7 @@ export const postLike = (req, res) => {
   const token = req.cookies.accessToken;
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
 
     const q = "INSERT INTO likes (`userid`,`postid`) VALUES (?)";
@@ -30,7 +30,7 @@ export const deleteLike = (req, res) => {
   const token = req.cookies.accessToken;
   if (!token) return res.status(401).json("Not logged in");
 
-  jwt.verify(token, "secretkey", (err, userinfo) => {
+  jwt.verify(token, process.env.JWT_KEY, (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
     const q = "DELETE FROM likes WHERE `userid` = ? AND `postid` = ?";
     console.log(req.query.postid);

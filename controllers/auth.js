@@ -16,6 +16,7 @@ export const register = (req, res) => {
 
     const salt = bcrypt.genSaltSync(10);
     const hashedPW = bcrypt.hash(req.body.password, salt);
+    console.log(hashedPW);
     hashedPW.then(function (result) {
       const q = "INSERT INTO users (`email`, `password`) VALUE (?)";
 
@@ -42,7 +43,7 @@ const businessLogin = (req, res) => {
     var result = bcrypt.compareSync(req.body.password, data[0].password);
 
     if (result) {
-      const token = jwt.sign({ id: data[0].id }, "secretkey");
+      const token = jwt.sign({ id: data[0].id }, process.env.JWT_KEY);
 
       const { password, ...others } = data[0];
 
@@ -70,7 +71,7 @@ export const login = (req, res) => {
     var result = bcrypt.compareSync(req.body.password, data[0].password);
 
     if (result) {
-      const token = jwt.sign({ id: data[0].id }, "secretkey");
+      const token = jwt.sign({ id: data[0].id }, process.env.JWT_KEY);
 
       const { password, ...others } = data[0];
 
@@ -101,56 +102,45 @@ export const registerBusiness = (req, res) => {
         .json({ message: "Business with that email already exists!" });
 
     geocodeAddress(req.body.address)
-      .then((json) => {
+      .then(async (json) => {
         let coords = json.geometry.location;
         const salt = bcrypt.genSaltSync(10);
         const hashedPW = bcrypt.hash(req.body.password, salt);
         hashedPW.then(async (result) => {
-          const q =
-            "INSERT INTO users SET name='" +
-            req.body.name +
-            "', email='" +
-            req.body.email +
-            "', password='" +
-            result +
-            "', city='" +
-            json.address_components[3].long_name +
-            "', state='" +
-            json.address_components[5].long_name +
-            "', address='" +
-            req.body.address +
-            "', coordinates=POINT(" +
-            coords.lng +
-            ", " +
-            coords.lat +
-            ")";
+          console.log(result);
+          const q = `INSERT INTO businesses (name, email, password, city, state, address, coordinates) VALUES ('${req.body.name}','${req.body.email}','${result}','${json.address_components[3].long_name}','${json.address_components[5].long_name}','${req.body.address}', POINT(${coords.lng}, ${coords.lat}))`;
 
-          const mailOptions = {
-            from: process.env.BUSINESS_REG,
-            to: process.env.BUSINESS_REG,
-            subject:
-              "Registration Request: " +
-              req.body.licenseID +
-              " cell: " +
-              req.body.number,
-            text: q,
-          };
+          db.query(q, (err, info) => {
+            if (err) console.log(err);
+            else console.log(info);
+          });
 
-          const mailOptions2 = {
-            from: process.env.BUSINESS_REG,
-            to: req.body.email,
-            subject: "Registration Request: " + req.body.licenseID,
-            text: "We have recieved your business application! Our team will review your information get back to you within 2 business days.",
-          };
+          // const mailOptions = {
+          //   from: process.env.BUSINESS_REG,
+          //   to: process.env.BUSINESS_REG,
+          //   subject:
+          //     "Registration Request: " +
+          //     req.body.licenseID +
+          //     " cell: " +
+          //     req.body.number,
+          //   text: q,
+          // };
 
-          const email1 = await sendRegistrationEmail(mailOptions);
-          const email2 = await sendRegistrationEmail(mailOptions2);
+          // const mailOptions2 = {
+          //   from: process.env.BUSINESS_REG,
+          //   to: req.body.email,
+          //   subject: "Registration Request: " + req.body.licenseID,
+          //   text: "We have recieved your business application! Our team will review your information get back to you within 2 business days.",
+          // };
 
-          if (!email1 || !email2) {
-            return res.status(500).json({ message: "Error sending email" });
-          } else {
-            return res.status(200).json({ message: "Success" });
-          }
+          // const email1 = await sendRegistrationEmail(mailOptions);
+          // const email2 = await sendRegistrationEmail(mailOptions2);
+
+          // if (!email1 || !email2) {
+          //   return res.status(500).json({ message: "Error sending email" });
+          // } else {
+          //   return res.status(200).json({ message: "Success" });
+          // }
         });
       })
       .catch((err) => {
