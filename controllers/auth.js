@@ -110,37 +110,32 @@ export const registerBusiness = (req, res) => {
           console.log(result);
           const q = `INSERT INTO businesses (name, email, password, city, state, address, coordinates) VALUES ('${req.body.name}','${req.body.email}','${result}','${json.address_components[3].long_name}','${json.address_components[5].long_name}','${req.body.address}', POINT(${coords.lng}, ${coords.lat}))`;
 
-          db.query(q, (err, info) => {
-            if (err) console.log(err);
-            else console.log(info);
-          });
+          const mailOptions = {
+            from: process.env.BUSINESS_REG,
+            to: process.env.BUSINESS_REG,
+            subject:
+              "Registration Request: " +
+              req.body.licenseID +
+              " cell: " +
+              req.body.number,
+            text: q,
+          };
 
-          // const mailOptions = {
-          //   from: process.env.BUSINESS_REG,
-          //   to: process.env.BUSINESS_REG,
-          //   subject:
-          //     "Registration Request: " +
-          //     req.body.licenseID +
-          //     " cell: " +
-          //     req.body.number,
-          //   text: q,
-          // };
+          const mailOptions2 = {
+            from: process.env.BUSINESS_REG,
+            to: req.body.email,
+            subject: "Registration Request: " + req.body.licenseID,
+            text: "We have recieved your business application! Our team will review your information get back to you within 2 business days.",
+          };
 
-          // const mailOptions2 = {
-          //   from: process.env.BUSINESS_REG,
-          //   to: req.body.email,
-          //   subject: "Registration Request: " + req.body.licenseID,
-          //   text: "We have recieved your business application! Our team will review your information get back to you within 2 business days.",
-          // };
+          const email1 = await sendRegistrationEmail(mailOptions);
+          const email2 = await sendRegistrationEmail(mailOptions2);
 
-          // const email1 = await sendRegistrationEmail(mailOptions);
-          // const email2 = await sendRegistrationEmail(mailOptions2);
-
-          // if (!email1 || !email2) {
-          //   return res.status(500).json({ message: "Error sending email" });
-          // } else {
-          //   return res.status(200).json({ message: "Success" });
-          // }
+          if (!email1 || !email2) {
+            return res.status(500).json({ message: "Error sending email" });
+          } else {
+            return res.status(200).json({ message: "Success" });
+          }
         });
       })
       .catch((err) => {
@@ -184,12 +179,23 @@ export const forgotPassword = async (req, res) => {
 
       db.query(updateToken, async (err, data) => {
         if (err) return res.status(500).json("Failed to update reset token");
-
-        const mailOption = {
-          from: process.env.SUPPORT,
-          to: email,
-          subject: "Locale: Password Reset",
-          html: `<div>
+        const mail = {
+          subject: "Request for Password Reset",
+          //This "from" is optional if you want to send from group email. For this you need to give permissions in that group to send emails from it.
+          from: {
+            emailAddress: {
+              address: "support@localeapplive.com",
+            },
+          },
+          toRecipients: [
+            {
+              emailAddress: {
+                address: email,
+              },
+            },
+          ],
+          body: {
+            content: `<div>
                   <h1>Locale: Password Reset Request</h1>
                   <h5>We have received a password reset request for your account</h5>
                   <h5>To reset your password, click the link below.</h5>
@@ -201,8 +207,11 @@ export const forgotPassword = async (req, res) => {
                   <div>&nbsp;</div>
                   <div><strong>Support</strong>: support@localeapplive.com</div>
                 </div>`,
+            contentType: "html",
+          },
         };
-        const mailStatus = await sendSupportEmail(mailOption);
+
+        const mailStatus = await sendSupportEmail(mail);
         if (mailStatus) {
           return res
             .status(200)
