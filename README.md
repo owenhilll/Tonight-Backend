@@ -1,3 +1,5 @@
+[![Node.js CI/CD on Amazon Linux](https://github.com/owenhilll/Locale-Backend/actions/workflows/nodejs.yml/badge.svg?branch=main)](https://github.com/owenhilll/Locale-Backend/actions/workflows/nodejs.yml)
+
 # Https without custom domain.
 ## Caddy and Nip.IO
 Used in conjunction, these two services allow the backend 
