@@ -28,11 +28,6 @@ app.use(
   })
 );
 
-var options = {
-  key: fs.readFileSync("localhost.key"),
-  cert: fs.readFileSync("localhost.crt"),
-};
-
 app.use(cookieParser());
 app.use(Express.json({ limit: "50mb" }));
 app.use(Express.urlencoded({ limit: "50mb" }));
