@@ -21,5 +21,5 @@ It makes sense at the moment for cost purposes, but may need to be
 revisted and moved to a centralized approach in the future.
 
 # CI/CD
-Currently configured to update Server1 and restart service, using Github actions. Will need more
-configuration if additional servers are spun up.
+Currently configured to update Server1 and restart service, using Github actions. 
+Will need more configuration if additional servers are spun up.
