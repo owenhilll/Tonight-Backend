@@ -9,10 +9,20 @@ import {
   getEventsFromBusiness,
   updateEvent,
   getEventsById,
+  getPopular,
+  getNearest,
+  getPromoted,
+  getProximity,
+  promoteEvent,
 } from "../controllers/events.js";
 const router = express.Router();
 
 router.get("/near", getNear);
+router.get("/promote", promoteEvent);
+router.get("/popular", getPopular);
+router.get("/nearest", getNearest);
+router.get("/promoted", getPromoted);
+router.get("/proximity", getProximity);
 router.get("/get", getEventsById);
 router.get("/following", getFollowing);
 router.get("/:userid", getEventsFromBusiness);
