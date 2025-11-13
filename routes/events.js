@@ -14,12 +14,14 @@ import {
   getPromoted,
   getProximity,
   promoteEvent,
+  getPromotedById,
 } from "../controllers/events.js";
 const router = express.Router();
 
 router.get("/near", getNear);
-router.get("/promote", promoteEvent);
+router.post("/promote", promoteEvent);
 router.get("/popular", getPopular);
+router.get("/promoted/:eventid", getPromotedById);
 router.get("/nearest", getNearest);
 router.get("/promoted", getPromoted);
 router.get("/proximity", getProximity);

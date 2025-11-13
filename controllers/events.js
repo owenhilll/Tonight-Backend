@@ -133,7 +133,7 @@ export const promoteEvent = (req, res) => {
   jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
     if (err) return res.status(403).json("Token is not valid");
 
-    let q = `insert into promoted ('1'eventid', 'duration','date') VALUES (${req.query.eventid},${req.query.duration},NOW());`;
+    let q = `insert into promoted (eventid, duration,date) VALUES (${req.body.eventId},${req.body.duration},NOW());`;
 
     db.query(q, (err, data) => {
       if (err) return res.status(500).json(err);
@@ -170,6 +170,21 @@ export const getEventsFromBusiness = (req, res) => {
   jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
     var id = req.params.userid;
     const q = "SELECT * FROM events WHERE businessid = ?";
+    db.query(q, [id], (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json(data);
+    });
+  });
+};
+
+export const getPromotedById = (req, res) => {
+  const token = req.headers.authorization;
+
+  if (!token) return res.status(401).json("Not logged in");
+
+  jwt.verify(token, process.env.JWT_KEY, async (err, userinfo) => {
+    var id = req.params.eventid;
+    const q = "SELECT * FROM promoted WHERE eventid = ?";
     db.query(q, [id], (err, data) => {
       if (err) return res.status(500).json(err);
       return res.status(200).json(data);

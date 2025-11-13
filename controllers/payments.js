@@ -23,6 +23,8 @@ export const paymentSheet = (req, res) => {
       stripeAccount: "{{CONNECTED_ACCOUNT_ID}}",
     });
 
+    const duration = req.query.duration;
+
     const customerSession = await stripe.customerSessions.create({
       customer: customer.id,
       components: {
@@ -63,16 +65,16 @@ export const checkoutSessionWeb = async (req, res) => {
         price_data: {
           currency: "usd",
           product_data: {
-            name: "T-shirt",
+            name: "Event Promotion",
           },
-          unit_amount: 100,
+          unit_amount: 500 * parseInt(req.query.duration),
         },
         quantity: 1,
       },
     ],
     mode: "payment",
     ui_mode: "embedded",
-    return_url: `${process.env.FRONTEND_URL}/profile/success?session_id={CHECKOUT_SESSION_ID}`,
+    return_url: `${process.env.FRONTEND_URL}/profile/success?session_id={CHECKOUT_SESSION_ID}&eventid=${req.query.eventid}&duration=${req.query.duration}`,
   });
 
   res.send({ clientSecret: session.client_secret });
